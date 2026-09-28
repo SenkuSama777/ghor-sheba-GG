@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Ghor Sheba — Tripura service network{% endblock %}</title>
+  <meta name="description" content="Find verified interior design, construction, raw materials, plumbing, carpentry and electrical providers across Tripura, or list your own trade business.">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="{{ url_for('home') }}">Ghor Sheba <small>TRIPURA</small></a>
+      <nav class="nav-links">
+        <a href="{{ url_for('providers') }}">Find a provider</a>
+        {% if current_user.is_authenticated %}
+          {% if current_user.role == 'customer' %}
+            <a href="{{ url_for('request_service') }}">Post a request</a>
+          {% endif %}
+          <a href="{{ url_for('dashboard') }}">Dashboard</a>
+          {% if current_user.is_admin %}<a href="{{ url_for('admin_panel') }}">Admin</a>{% endif %}
+          <a href="{{ url_for('logout') }}">Log out</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Log in</a>
+          <a class="btn btn-small" href="{{ url_for('register') }}">Join</a>
+        {% endif %}
+      </nav>
+    </div>
+    <div class="accent-strip"></div>
+  </header>
+
+  <main class="wrap" style="padding-top: 30px; padding-bottom: 30px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {% if category == 'error' %}flash-error{% endif %}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <div class="wrap">
+      Ghor Sheba connects anyone in Tripura — local, new, or living elsewhere — with
+      verified local tradespeople: interior design, construction, raw materials,
+      plumbing, carpentry and electrical.
+    </div>
+  </footer>
+</body>
+</html>

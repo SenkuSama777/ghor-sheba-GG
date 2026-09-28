@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="font-size:1.9rem;">Your requests</h1>
+<p style="color: var(--concrete);">
+  {% if current_user.based_in_tripura %}Based in Tripura.{% else %}Based in {{ current_user.current_location or 'elsewhere' }}.{% endif %}
+  <a href="{{ url_for('request_service') }}">Post a new request &rarr;</a>
+</p>
+
+{% if not my_requests %}
+  <div class="plate">You haven't posted a request yet. <a href="{{ url_for('request_service') }}">Post one now</a>.</div>
+{% endif %}
+
+{% for r in my_requests %}
+  <div class="plate">
+    <div class="list-row" style="border-bottom:none; padding-top:0;">
+      <div>
+        <h3>{{ r.title }}</h3>
+        <div class="category-chip" style="--cat: {{ category_color[r.category] }}; margin: 3px 0;">
+          <span class="dot"></span>{{ category_label[r.category] }}
+        </div>
+        <div class="meta-line" style="margin-top:0;">{{ r.district }} &middot; posted {{ r.created_at.strftime('%d %b %Y') }}{% if r.remote_client %} &middot; remote client{% endif %}</div>
+        <p style="font-size:0.92rem;">{{ r.description }}</p>
+      </div>
+      <span class="status-pill status-{{ r.status }}">{{ r.status.replace('_',' ') }}</span>
+    </div>
+
+    {% if r.quotes %}
+      <div class="quote-block">
+        <strong style="font-size:0.85rem;">Quotes received</strong>
+        {% for q in r.quotes %}
+          <div style="margin-top:8px; padding:10px; background:#fff; border:1px solid var(--line);">
+            <div class="meta-line" style="margin:0;"><strong>{{ q.provider.business_name }}</strong> — {{ q.price_estimate or 'no estimate given' }}</div>
+            <p style="font-size:0.9rem; margin:6px 0;">{{ q.message }}</p>
+            {% if q.status == 'accepted' %}
+              <span class="badge badge-verified">Accepted</span>
+            {% elif r.status in ['open','quoted'] %}
+              <form method="post" action="{{ url_for('accept_quote', request_id=r.id, quote_id=q.id) }}" style="margin-top:4px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-small" type="submit">Accept this quote</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if r.status == 'in_progress' %}
+      <div style="margin-top:12px; display:flex; gap:10px;">
+        <a class="btn btn-small" href="{{ url_for('pay_request', request_id=r.id) }}">Pay provider</a>
+        <form method="post" action="{{ url_for('complete_request', request_id=r.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-small btn-outline" type="submit">Mark as completed</button>
+        </form>
+      </div>
+    {% endif %}
+
+    {% if r.status == 'completed' %}
+      <div class="quote-block">
+        <strong style="font-size:0.85rem;">Leave a review</strong>
+        <form method="post" action="{{ url_for('leave_review', request_id=r.id) }}" style="margin-top:8px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="field-row">
+            <div>
+              <label>Rating</label>
+              <select name="rating">
+                <option value="5">5 — excellent</option>
+                <option value="4">4 — good</option>
+                <option value="3">3 — okay</option>
+                <option value="2">2 — poor</option>
+                <option value="1">1 — bad</option>
+              </select>
+            </div>
+          </div>
+          <label>Comment</label>
+          <textarea name="comment" style="min-height:70px;"></textarea>
+          <button class="btn btn-small" type="submit" style="margin-top:8px;">Submit review</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="font-size:1.9rem;">{{ profile.business_name }}</h1>
+<div class="category-chip" style="--cat: {{ category_color[profile.category] }}; margin-bottom:4px;">
+  <span class="dot"></span>{{ category_label[profile.category] }}
+</div>
+<p class="meta-line" style="margin-top:0;">
+  {{ profile.district }}{% if profile.visit_fee %} &middot; &#8377;{{ profile.visit_fee }} visit fee{% endif %}
+  {% if profile.verified %}<span class="badge badge-verified">Verified</span>{% else %}<span class="badge badge-pending">Awaiting verification</span>{% endif %}
+  &middot; <a href="{{ url_for('edit_provider_profile') }}">Edit profile</a>
+</p>
+
+<h2 style="margin-top:30px;">Requests in your area</h2>
+{% if not matching_requests %}
+  <div class="plate">No open requests in {{ profile.district }} for {{ category_label[profile.category] }} right now.</div>
+{% endif %}
+
+{% for r in matching_requests %}
+  <div class="plate">
+    <div class="list-row" style="border-bottom:none; padding-top:0;">
+      <div>
+        <h3>{{ r.title }}</h3>
+        <div class="meta-line">
+          {{ r.district }} &middot; posted {{ r.created_at.strftime('%d %b %Y') }}
+          {% if r.remote_client %} &middot; customer is not on-site{% endif %}
+          {% if r.budget_range %} &middot; budget {{ r.budget_range }}{% endif %}
+        </div>
+        <p style="font-size:0.92rem;">{{ r.description }}</p>
+        {% if r.remote_client and r.site_contact_name %}
+          <div class="meta-line">Local contact: {{ r.site_contact_name }} ({{ r.site_contact_phone }})</div>
+        {% endif %}
+      </div>
+      <span class="status-pill status-{{ r.status }}">{{ r.status.replace('_',' ') }}</span>
+    </div>
+
+    {% if r.id in quoted_request_ids %}
+      <div class="quote-block"><span class="badge badge-verified">Quote sent</span></div>
+    {% else %}
+      <div class="quote-block">
+        <form method="post" action="{{ url_for('submit_quote', request_id=r.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="field-row">
+            <div>
+              <label>Your estimate</label>
+              <input type="text" name="price_estimate" placeholder="e.g. ₹65,000">
+            </div>
+          </div>
+          <label>Message to customer</label>
+          <textarea name="message" style="min-height:70px;" required></textarea>
+          <button class="btn btn-small" type="submit" style="margin-top:8px;">Send quote</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+{% endfor %}
+{% endblock %}

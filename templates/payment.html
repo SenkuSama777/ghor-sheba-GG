@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="plate" style="max-width: 560px; margin: 0 auto;">
+  <h1 style="font-size:1.7rem;">Pay for: {{ req.title }}</h1>
+  <div class="meta-line">{{ category_label[req.category] }} &middot; provider: {{ quote.provider.business_name }}</div>
+
+  {% if existing_paid %}
+    <div class="flash" style="margin-top:20px;">
+      Paid &#8377;{{ existing_paid.amount }} on {{ existing_paid.created_at.strftime('%d %b %Y') }}.
+      Payment reference: {{ existing_paid.razorpay_payment_id }}
+    </div>
+    <a class="btn btn-outline" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+
+  {% elif not gateway_configured %}
+    <div class="flash flash-error" style="margin-top:20px;">
+      Online payments aren't set up on this deployment yet
+      (<code>RAZORPAY_KEY_ID</code> / <code>RAZORPAY_KEY_SECRET</code> are not configured).
+      Arrange payment with the provider directly for now.
+    </div>
+    <a class="btn btn-outline" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+
+  {% elif payment %}
+    <p style="margin-top:16px;">You're about to pay <strong>&#8377;{{ payment.amount }}</strong> to
+      {{ quote.provider.business_name }} for this job.</p>
+
+    <button id="rzp-pay-btn" class="btn" style="margin-top:10px;">Pay &#8377;{{ payment.amount }} now</button>
+
+    <form id="verify-form" method="post" action="{{ url_for('verify_payment') }}" style="display:none;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="razorpay_order_id" id="rzp_order_id">
+      <input type="hidden" name="razorpay_payment_id" id="rzp_payment_id">
+      <input type="hidden" name="razorpay_signature" id="rzp_signature">
+    </form>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+      document.getElementById('rzp-pay-btn').onclick = function (e) {
+        e.preventDefault();
+        var options = {
+          key: "{{ razorpay_key_id }}",
+          amount: "{{ (payment.amount * 100) | int }}",
+          currency: "INR",
+          name: "Ghor Sheba",
+          description: {{ req.title|tojson }},
+          order_id: "{{ payment.razorpay_order_id }}",
+          prefill: {
+            name: {{ current_user.name|tojson }},
+            email: {{ current_user.email|tojson }},
+            contact: {{ (current_user.phone or "")|tojson }}
+          },
+          theme: { color: "#1C2B36" },
+          handler: function (response) {
+            document.getElementById('rzp_order_id').value = response.razorpay_order_id;
+            document.getElementById('rzp_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('rzp_signature').value = response.razorpay_signature;
+            document.getElementById('verify-form').submit();
+          }
+        };
+        var rzp = new Razorpay(options);
+        rzp.open();
+      };
+    </script>
+
+  {% else %}
+    <form method="post" style="margin-top:20px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Amount to pay (&#8377;)</label>
+      <input type="text" name="amount" value="{{ suggested_amount or '' }}" placeholder="e.g. 15000" required>
+      {% if quote.price_estimate %}
+        <p style="font-size:0.85rem; color:var(--concrete);">Provider's estimate: {{ quote.price_estimate }}</p>
+      {% endif %}
+      <button class="btn" type="submit" style="margin-top:12px;">Continue to payment</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

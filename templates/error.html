@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="plate" style="text-align:center; padding: 60px 20px;">
+  <h1>{{ code }}</h1>
+  <p style="margin:0 auto;">{{ message }}</p>
+  <a class="btn" style="margin-top:16px;" href="{{ url_for('home') }}">Back home</a>
+</div>
+{% endblock %}

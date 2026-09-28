@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="plate" style="max-width: 600px; margin: 0 auto;">
+  <h1 style="font-size:1.7rem;">Post a service request</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field-row">
+      <div>
+        <label>Category</label>
+        <select name="category" required>
+          {% for key, label in categories %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>District</label>
+        <select name="district" required>
+          {% for d in districts %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <label>Title</label>
+    <input type="text" name="title" placeholder="e.g. Rewire 2BHK before move-in" required>
+
+    <label>Describe the work</label>
+    <textarea name="description" placeholder="Scope, timeline, any materials already on site..." required></textarea>
+
+    <label>Budget range (optional)</label>
+    <input type="text" name="budget_range" placeholder="e.g. ₹50,000 – ₹80,000">
+
+    <fieldset>
+      <legend>Will you be on-site?</legend>
+      <div class="radio-group">
+        <label><input type="radio" name="remote_client" value="no" checked onclick="toggleContact(false)"> I'll be there</label>
+        <label><input type="radio" name="remote_client" value="yes" onclick="toggleContact(true)"> I'm elsewhere — need remote coordination</label>
+      </div>
+      <div id="contact-field" style="display:none;">
+        <p style="font-size:0.88rem; color:var(--concrete); margin-top:10px;">
+          Give a local point of contact if you have one (family, caretaker, neighbour). Providers will
+          share photo/video updates either way.
+        </p>
+        <div class="field-row">
+          <div><label>Contact name</label><input type="text" name="site_contact_name"></div>
+          <div><label>Contact phone</label><input type="tel" name="site_contact_phone"></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <div style="margin-top:20px;"><button class="btn" type="submit">Post request</button></div>
+  </form>
+</div>
+<script>
+function toggleContact(show) {
+  document.getElementById('contact-field').style.display = show ? 'block' : 'none';
+}
+</script>
+{% endblock %}

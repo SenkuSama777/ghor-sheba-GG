@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="plate">
+  <h1 style="font-size:1.8rem;">{{ provider.business_name }}
+    {% if provider.verified %}<span class="badge badge-verified">Verified</span>{% else %}<span class="badge badge-pending">Unverified</span>{% endif %}
+  </h1>
+  <div class="category-chip" style="--cat: {{ category_color[provider.category] }}; margin: 6px 0;">
+    <span class="dot"></span>{{ category_label[provider.category] }}
+  </div>
+  <div class="meta-line" style="margin-top:0;">{{ provider.district }}{% if provider.address %} &middot; {{ provider.address }}{% endif %} &middot; {{ provider.years_experience }} yrs experience</div>
+  {% if provider.visit_fee %}
+    <div style="font-size:0.9rem; font-weight:600; color: var(--ochre); margin-bottom:6px;">
+      &#8377;{{ provider.visit_fee }} visit / call-out fee
+    </div>
+  {% endif %}
+  {% if provider.average_rating %}<div class="rating">&#9733; {{ provider.average_rating }} ({{ provider.review_count }} review{{ 's' if provider.review_count != 1 }})</div>{% endif %}
+  <p style="margin-top:14px;">{{ provider.description or "No description provided yet." }}</p>
+  {% if not current_user.is_authenticated %}
+    <a class="btn" href="{{ url_for('register') }}">Sign up to request a quote</a>
+  {% elif current_user.role == 'customer' %}
+    <a class="btn" href="{{ url_for('request_service') }}">Post a request in {{ provider.district }}</a>
+  {% endif %}
+</div>
+
+<h2>Reviews</h2>
+{% if not reviews %}
+  <p style="color: var(--concrete);">No reviews yet.</p>
+{% endif %}
+{% for r in reviews %}
+  <div class="plate">
+    <div class="rating">&#9733; {{ r.rating }}/5</div>
+    {% if r.comment %}<p style="margin-top:6px;">{{ r.comment }}</p>{% endif %}
+    <div class="meta-line">{{ r.created_at.strftime('%d %b %Y') }}</div>
+  </div>
+{% endfor %}
+
+{% endblock %}

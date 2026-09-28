@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="plate" style="max-width: 420px; margin: 0 auto;">
+  <h1 style="font-size:1.7rem;">Log in</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Email</label>
+    <input type="email" name="email" required>
+    <label>Password</label>
+    <input type="password" name="password" required>
+    <div style="margin-top:20px;"><button class="btn" type="submit">Log in</button></div>
+  </form>
+  <p style="margin-top:16px; font-size:0.9rem;">No account yet? <a href="{{ url_for('register') }}">Join here</a>.</p>
+</div>
+{% endblock %}

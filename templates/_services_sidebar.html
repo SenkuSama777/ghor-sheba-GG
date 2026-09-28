@@ -1,0 +1,16 @@
+<aside class="services-sidebar">
+  {% set active_category = active_category|default('') %}
+  <h3>Services</h3>
+  <ul>
+    {% for key, label in categories %}
+      <li>
+        <a href="{{ url_for('providers', category=key) }}"
+           style="--cat: {{ category_color[key] }};"
+           class="{% if active_category == key %}active{% endif %}">
+          <span class="icon">{{ category_icon[key]|safe }}</span>
+          {{ label }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</aside>

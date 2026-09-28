@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="kicker">TRIPURA'S TRADES, ONE PLACE ONLINE</div>
+      <h1>Find the right tradesperson, <mark>without asking around.</mark></h1>
+      <p class="lede">
+        Ghor Sheba connects anyone in Tripura with verified local providers for interior
+        work, construction, raw materials, plumbing, carpentry and electrical jobs — post
+        what you need once, and providers in your district send quotes. It works just as
+        well if you're down the road as it does if you've just moved here or own a place
+        you can't visit often.
+      </p>
+      <div class="hero-actions">
+        {% if current_user.is_authenticated and current_user.role == 'customer' %}
+          <a class="btn" href="{{ url_for('request_service') }}">Post a request</a>
+        {% else %}
+          <a class="btn" href="{{ url_for('register') }}">Post a request</a>
+        {% endif %}
+        <a class="btn btn-outline" href="{{ url_for('providers') }}">Browse providers</a>
+      </div>
+    </div>
+    <div class="plate">
+      <h3>Why people use this</h3>
+      <p style="font-size:0.94rem; margin-bottom:0;">
+        Fixing a leak this week. Furnishing a flat before move-in. Sourcing bricks and
+        cement for a build you're overseeing daily — or one you can only check on now and
+        then. Every request gets the same thing: verified providers in your district,
+        quotes to compare, and reviews from past customers.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="page-layout" style="margin-top: 36px;">
+  {% include "_services_sidebar.html" %}
+
+  <div>
+    {% if featured %}
+    <section>
+      <h2>Recently verified</h2>
+      {% for p in featured %}
+        <div class="plate provider-card">
+          <div>
+            <h3><a href="{{ url_for('provider_detail', provider_id=p.id) }}" style="text-decoration:none;">{{ p.business_name }}</a>
+              <span class="badge badge-verified">Verified</span>
+            </h3>
+            <div class="category-chip" style="--cat: {{ category_color[p.category] }}; margin-bottom:4px;">
+              <span class="dot"></span>{{ category_label[p.category] }}
+            </div>
+            <div class="meta-line" style="margin-top:0;">{{ p.district }} &middot; {{ p.years_experience }} yrs experience</div>
+          </div>
+          {% if p.average_rating %}<div class="rating">&#9733; {{ p.average_rating }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    </section>
+    {% else %}
+      <div class="plate">
+        <h3>No verified providers yet</h3>
+        <p style="margin-bottom:0; font-size:0.92rem;">
+          Pick a category on the left to browse everyone who's signed up so far, or
+          <a href="{{ url_for('register') }}">register as a provider</a> to be one of the first.
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

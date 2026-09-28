@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-shell">
+  <div class="admin-kicker">Admin console</div>
+  <h1 style="font-size:1.9rem;">Provider moderation</h1>
+  <div class="admin-sub">Verify new sign-ups, or remove listings that shouldn't be on the platform.</div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="num">{{ stats.total_providers }}</div><div class="label">Total providers</div></div>
+    <div class="stat-card"><div class="num">{{ stats.verified_count }}</div><div class="label">Verified</div></div>
+    <div class="stat-card"><div class="num">{{ stats.pending_count }}</div><div class="label">Pending</div></div>
+    <div class="stat-card"><div class="num">{{ stats.total_customers }}</div><div class="label">Customers</div></div>
+    <div class="stat-card"><div class="num">{{ stats.total_requests }}</div><div class="label">Requests posted</div></div>
+    <div class="stat-card"><div class="num">{{ stats.total_payments }}</div><div class="label">Payments completed</div></div>
+  </div>
+
+  <div class="admin-section">
+    <h2 style="font-size:1.2rem;">Pending verification</h2>
+    {% if not pending %}
+      <div class="admin-empty">Nothing waiting on review.</div>
+    {% else %}
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Business</th><th>Category</th><th>District</th><th>Experience</th><th>Contact</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pending %}
+            <tr>
+              <td class="business-name">{{ p.business_name }}</td>
+              <td>
+                <span class="category-chip" style="--cat: {{ category_color[p.category] }};">
+                  <span class="dot"></span>{{ category_label[p.category] }}
+                </span>
+              </td>
+              <td>{{ p.district }}</td>
+              <td>{{ p.years_experience }} yrs</td>
+              <td>{{ p.user.email }}</td>
+              <td style="text-align:right; white-space:nowrap;">
+                <form method="post" action="{{ url_for('verify_provider', provider_id=p.id) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-small" type="submit">Verify</button>
+                </form>
+                <form method="post" action="{{ url_for('delete_provider', provider_id=p.id) }}" style="display:inline;"
+                      onsubmit="return confirm('Remove {{ p.business_name|e }} and their account entirely? This can\'t be undone.');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-small btn-danger" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <div class="admin-section">
+    <h2 style="font-size:1.2rem;">Verified providers</h2>
+    {% if not verified %}
+      <div class="admin-empty">No verified providers yet.</div>
+    {% else %}
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Business</th><th>Category</th><th>District</th><th>Rating</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in verified %}
+            <tr>
+              <td class="business-name">{{ p.business_name }}</td>
+              <td>
+                <span class="category-chip" style="--cat: {{ category_color[p.category] }};">
+                  <span class="dot"></span>{{ category_label[p.category] }}
+                </span>
+              </td>
+              <td>{{ p.district }}</td>
+              <td>{% if p.average_rating %}&#9733; {{ p.average_rating }} ({{ p.review_count }}){% else %}—{% endif %}</td>
+              <td style="text-align:right;">
+                <form method="post" action="{{ url_for('delete_provider', provider_id=p.id) }}"
+                      onsubmit="return confirm('Remove {{ p.business_name|e }} and their account entirely? This can\'t be undone.');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-small btn-danger" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
