@@ -35,8 +35,11 @@ def _database_url():
 
     # Some providers hand out "postgres://" URLs; SQLAlchemy 1.4+/2.x wants
     # "postgresql://".
-    if url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
+if url.startswith("postgres://"):
+    url = "postgresql://" + url[len("postgres://"):]
+
+if url.startswith("postgresql://"):
+    url = "postgresql+psycopg://" + url[len("postgresql://"):]
     return url
 
 
